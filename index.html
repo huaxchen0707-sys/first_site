@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍪 Cookie Clicker - Golden Cookies</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            min-height: 100vh;
+        }
+
+        #cookie {
+            width: 280px;
+            height: 280px;
+            cursor: pointer;
+            transition: transform 0.05s;
+            margin: 20px auto;
+        }
+
+        #cookie:active {
+            transform: scale(0.92);
+        }
+
+        #cookies {
+            font-size: 3.2rem;
+            color: #ffcc00;
+            margin: 10px 0;
+        }
+
+        .cps {
+            font-size: 1.4rem;
+            color: #0f0;
+        }
+
+        .buildings-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            max-height: 60vh;
+            /* Limits height so it scrolls */
+            overflow-y: auto;
+            /* Enables vertical scrolling */
+            padding-right: 10px;
+        }
+
+        .buildings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 15px;
+        }
+
+        .building {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .building:hover {
+            border-color: #ffcc00;
+            transform: translateY(-4px);
+        }
+
+        .building h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.35rem;
+        }
+
+        .building button {
+            width: 100%;
+            padding: 12px;
+            background: #ffcc00;
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .building button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        /* Golden Cookie */
+        .golden-cookie {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, #ffd700, #ffaa00);
+            border-radius: 50%;
+            box-shadow: 0 0 45px #ff0, 0 0 100px #f80;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            animation: goldenPulse 1.8s infinite alternate;
+            z-index: 1000;
+            transition: transform 0.2s;
+        }
+
+        .golden-cookie:hover {
+            transform: scale(1.3);
+        }
+
+        @keyframes goldenPulse {
+            from {
+                box-shadow: 0 0 35px #ff0;
+            }
+
+            to {
+                box-shadow: 0 0 100px #f80;
+            }
+        }
+
+        .stats {
+            margin-top: 30px;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🍪 Cookie Clicker - Golden Cookies</h1>
+    <div id="cookies">0 cookies</div>
+    <div class="cps">per second: <span id="cps">0</span></div>
+    <img id="cookie" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Cookie.png/800px-Cookie.png"
+        alt="Cookie" onclick="clickCookie()">
+
+    <!-- Scrollable buildings area -->
+    <div class="buildings-container">
+        <div class="buildings" id="buildings"></div>
+    </div>
+
+    <div class="stats">
+        Total buildings owned: <span id="total-owned">0</span>
+    </div>
+
+    <script>
+        let cookies = 0;
+        let totalCps = 0;
+
+        const buildingsData = [
+            { name: "👆 Cursor", baseCost: 15, baseCps: 0.1, owned: 0 },
+            { name: "👵 Grandma", baseCost: 100, baseCps: 1, owned: 0 },
+            { name: "🌾 Farm", baseCost: 1100, baseCps: 8, owned: 0 },
+            { name: "⛏️ Mine", baseCost: 12000, baseCps: 47, owned: 0 },
+            { name: "🏭 Factory", baseCost: 130000, baseCps: 260, owned: 0 },
+            { name: "🏦 Bank", baseCost: 1400000, baseCps: 1400, owned: 0 },
+            { name: "⛪ Temple", baseCost: 20000000, baseCps: 7800, owned: 0 },
+            { name: "🧙 Wizard Tower", baseCost: 330000000, baseCps: 44000, owned: 0 },
+            { name: "🚀 Shipment", baseCost: 5100000000, baseCps: 260000, owned: 0 },
+            { name: "🧪 Alchemy Lab", baseCost: 75000000000, baseCps: 1600000, owned: 0 },
+            { name: "🌌 Portal", baseCost: 1000000000000, baseCps: 10000000, owned: 0 },
+            { name: "⏰ Time Machine", baseCost: 14000000000000, baseCps: 65000000, owned: 0 },
+            { name: "⚛️ Antimatter Condenser", baseCost: 170000000000000, baseCps: 430000000, owned: 0 },
+            { name: "🌈 Prism", baseCost: 2100000000000000, baseCps: 2900000000, owned: 0 },
+            { name: "🍀 Chancemaker", baseCost: 26000000000000000, baseCps: 21000000000, owned: 0 },
+            { name: "🔄 Fractal Engine", baseCost: 310000000000000000, baseCps: 150000000000, owned: 0 },
+            { name: "💻 Javascript Console", baseCost: 71000000000000000000, baseCps: 1100000000000, owned: 0 },
+            { name: "🌌 Idleverse", baseCost: 1200000000000000000000, baseCps: 8300000000000, owned: 0 },
+            { name: "🧠 Cortex Baker", baseCost: 190000000000000000000000, baseCps: 64000000000000, owned: 0 },
+            { name: "🌟 You", baseCost: 10000000000000000000000000, baseCps: 510000000000000, owned: 0 }
+        ];
+
+        function formatNumber(num) {
+            if (num < 1e6) return Math.floor(num).toLocaleString();
+            const units = ["", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+            let unitIndex = 0;
+            let n = num;
+            while (n >= 1000 && unitIndex < units.length - 1) {
+                n /= 1000;
+                unitIndex++;
+            }
+            return n.toFixed(unitIndex === 0 ? 0 : 2) + units[unitIndex];
+        }
+
+        function createBuildings() {
+            const container = document.getElementById('buildings');
+            container.innerHTML = '';
+            buildingsData.forEach((b, index) => {
+                const div = document.createElement('div');
+                div.className = 'building';
+                div.innerHTML = `
+                    <h3>${b.name}</h3>
+                    <p>Owned: <span id="owned-${index}">0</span></p>
+                    <p>CpS: <span id="cps-${index}">${b.baseCps}</span></p>
+                    <p>Cost: <span id="cost-${index}">${b.baseCost}</span></p>
+                    <button onclick="buyBuilding(${index})">Buy</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('cookies').textContent = formatNumber(cookies) + " cookies";
+            document.getElementById('cps').textContent = formatNumber(totalCps);
+
+            let totalOwned = 0;
+            buildingsData.forEach((b, i) => {
+                const currentCost = Math.floor(b.baseCost * Math.pow(1.15, b.owned));
+                document.getElementById(`owned-${i}`).textContent = b.owned;
+                document.getElementById(`cost-${i}`).textContent = formatNumber(currentCost);
+                totalOwned += b.owned;
+            });
+            document.getElementById('total-owned').textContent = totalOwned;
+        }
+
+        function clickCookie() {
+            cookies += 1;
+            const img = document.getElementById('cookie');
+            img.style.transform = 'scale(1.2)';
+            setTimeout(() => img.style.transform = 'scale(1)', 80);
+            updateDisplay();
+        }
+
+        window.buyBuilding = function (index) {
+            const b = buildingsData[index];
+            const cost = Math.floor(b.baseCost * Math.pow(1.15, b.owned));
+            if (cookies >= cost) {
+                cookies -= cost;
+                b.owned++;
+                totalCps += b.baseCps;
+                updateDisplay();
+            }
+        };
+
+        // Golden Cookie (every 5 seconds)
+        function spawnGoldenCookie() {
+            const golden = document.createElement('div');
+            golden.className = 'golden-cookie';
+            golden.textContent = '🍪';
+
+            const x = Math.random() * (window.innerWidth - 140) + 70;
+            const y = Math.random() * (window.innerHeight * 0.7) + 120; // avoid bottom area
+            golden.style.left = `${x}px`;
+            golden.style.top = `${y}px`;
+
+            golden.onclick = () => {
+                const multiplier = Math.floor(Math.random() * 19) + 7;
+                const bonus = Math.floor(cookies * (multiplier / 10)) + 1000;
+                cookies += bonus;
+
+                const msg = document.createElement('div');
+                msg.style.position = 'absolute';
+                msg.style.left = `${x}px`;
+                msg.style.top = `${y - 50}px`;
+                msg.style.color = '#ff0';
+                msg.style.fontSize = '28px';
+                msg.style.fontWeight = 'bold';
+                msg.style.pointerEvents = 'none';
+                msg.style.animation = 'fadeUp 1.5s forwards';
+                msg.textContent = `+${formatNumber(bonus)} (${multiplier}x)`;
+                document.body.appendChild(msg);
+
+                setTimeout(() => msg.remove(), 1500);
+                golden.remove();
+                updateDisplay();
+            };
+
+            document.body.appendChild(golden);
+
+            setTimeout(() => {
+                if (golden.parentNode) golden.remove();
+            }, 8000);
+        }
+
+        setInterval(spawnGoldenCookie, 5000);
+
+        // Game loop
+        setInterval(() => {
+            cookies += totalCps / 20;
+            updateDisplay();
+        }, 50);
+
+        // Initialize
+        createBuildings();
+        updateDisplay();
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fadeUp {
+                0% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(-80px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
